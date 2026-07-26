@@ -1,0 +1,120 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+  IGNORED
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum IncidentCategory {
+  ENVIRONMENT_CONFIGURATION
+  DEPENDENCY
+  BUILD
+  TEST
+  DATABASE
+  AUTHENTICATION
+  DEPLOYMENT
+  UNKNOWN
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String?
+  repositories Repository[]
+  incidents    Incident[]   @relation("Assignee")
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+model Repository {
+  id            String            @id @default(cuid())
+  githubId      BigInt            @unique
+  fullName      String            @unique
+  defaultBranch String            @default("main")
+  isActive      Boolean           @default(true)
+  ownerId       String
+  owner         User              @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  incidents     Incident[]
+  deliveries    WebhookDelivery[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model Incident {
+  id            String             @id @default(cuid())
+  repositoryId  String
+  repository    Repository         @relation(fields: [repositoryId], references: [id], onDelete: Cascade)
+  assigneeId    String?
+  assignee      User?              @relation("Assignee", fields: [assigneeId], references: [id])
+  externalRunId String?
+  title         String
+  summary       String
+  workflowName  String?
+  branch        String?
+  commitSha     String?
+  status        IncidentStatus     @default(OPEN)
+  severity      Severity           @default(MEDIUM)
+  category      IncidentCategory   @default(UNKNOWN)
+  confidence    Float              @default(0)
+  rootCause     String?
+  suggestedFix  String?
+  rawLog        String?
+  evidence      IncidentEvidence[]
+  actions       IncidentAction[]
+  detectedAt    DateTime           @default(now())
+  resolvedAt    DateTime?
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+
+  @@index([repositoryId, status])
+  @@index([detectedAt])
+}
+
+model IncidentEvidence {
+  id         String   @id @default(cuid())
+  incidentId String
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  source     String
+  line       String
+  lineNumber Int?
+  createdAt  DateTime @default(now())
+}
+
+model IncidentAction {
+  id         String   @id @default(cuid())
+  incidentId String
+  incident   Incident @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+  label      String
+  completed  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model WebhookDelivery {
+  id               String      @id @default(cuid())
+  githubDeliveryId String      @unique
+  event            String
+  repositoryId     String?
+  repository       Repository? @relation(fields: [repositoryId], references: [id], onDelete: SetNull)
+  payload          Json
+  processed        Boolean     @default(false)
+  error            String?
+  createdAt        DateTime    @default(now())
+  processedAt      DateTime?
+}
