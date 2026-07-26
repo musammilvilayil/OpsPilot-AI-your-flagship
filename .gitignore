@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+coverage
+.env
+.env.local
+*.log
+.DS_Store
+__pycache__
+.pytest_cache
+.venv
+services/ai/.venv
+prisma/dev.db

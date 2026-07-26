@@ -1,0 +1,15 @@
+[project]
+name = "opspilot-ai-service"
+version = "0.1.0"
+description = "Structured incident analysis service for OpsPilot AI"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi[standard]>=0.115.0,<1.0.0",
+  "pydantic>=2.10.0,<3.0.0"
+]
+
+[tool.fastapi]
+entrypoint = "app.main:app"
+
+[tool.uv]
+package = false
