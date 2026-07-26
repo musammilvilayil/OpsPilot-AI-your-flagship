@@ -1,0 +1,59 @@
+services:
+  - type: web
+    name: opspilot-web
+    runtime: node
+    plan: free
+    region: singapore
+    branch: main
+    autoDeployTrigger: checksPass
+    buildCommand: npm install --no-audit --no-fund && npx prisma generate && npx prisma db push --skip-generate && npx next build
+    startCommand: npm run start -- --hostname 0.0.0.0 --port $PORT
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.16.0
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: opspilot-postgres
+          property: connectionString
+      - key: AI_SERVICE_URL
+        fromService:
+          type: web
+          name: opspilot-ai-service
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: GITHUB_WEBHOOK_SECRET
+        generateValue: true
+
+  - type: web
+    name: opspilot-ai-service
+    runtime: python
+    plan: free
+    region: singapore
+    branch: main
+    autoDeployTrigger: checksPass
+    rootDir: services/ai
+    buildCommand: pip install .
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+
+# The hosted demo uses synchronous incident analysis so it can remain on free web
+# instances. Redis and the BullMQ worker remain available in the repository for
+# a production upgrade, where Render background workers require a paid plan.
+databases:
+  - name: opspilot-postgres
+    databaseName: opspilot
+    user: opspilot
+    plan: free
+    region: singapore
+    postgresMajorVersion: "16"
+    ipAllowList: []
+
+previews:
+  generation: none
