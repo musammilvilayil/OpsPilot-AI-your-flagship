@@ -41,9 +41,25 @@ jobs:
           node-version: 22
       - run: npm install --no-audit --no-fund
       - run: npx prisma generate
-      - run: npm run typecheck
+      - name: TypeScript validation
+        run: npm run typecheck 2>&1 | tee typecheck.log
+      - name: Upload typecheck diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: typecheck-diagnostics
+          path: typecheck.log
+          retention-days: 3
       - run: npm test
-      - run: npm run build
+      - name: Production build
+        run: npm run build 2>&1 | tee build.log
+      - name: Upload build diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-diagnostics
+          path: build.log
+          retention-days: 3
 
   ai-service:
     runs-on: ubuntu-latest
