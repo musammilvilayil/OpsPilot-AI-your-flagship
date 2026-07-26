@@ -56,4 +56,4 @@ databases:
     ipAllowList: []
 
 previews:
-  generation: none
+  generation: off
