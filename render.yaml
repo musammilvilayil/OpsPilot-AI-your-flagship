@@ -1,19 +1,17 @@
 services:
   - type: web
     name: opspilot-web
-    runtime: node
+    runtime: docker
     plan: free
     region: singapore
     branch: main
     autoDeployTrigger: checksPass
-    buildCommand: npm install --include=dev --no-audit --no-fund && npm run build
-    startCommand: npm run start -- --hostname 0.0.0.0 --port $PORT
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
-      - key: NODE_VERSION
-        value: 22.16.0
       - key: NEXT_TELEMETRY_DISABLED
         value: "1"
       - key: DATABASE_URL
@@ -43,9 +41,8 @@ services:
       - key: PYTHON_VERSION
         value: 3.12.8
 
-# Database schema is managed separately from the application build. The hosted
-# demo already has the current Prisma schema; future schema changes should use
-# a reviewed migration rather than a network-dependent db push during builds.
+# The hosted free demo runs incident analysis synchronously. Redis/BullMQ remains
+# available in the source architecture for a paid background-worker deployment.
 databases:
   - name: opspilot-postgres
     databaseName: opspilot
