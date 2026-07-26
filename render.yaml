@@ -1,11 +1,14 @@
 services:
+  # The polished portfolio UI is deployed on Vercel. Keep this existing Render
+  # web service available for manual full-stack testing without rebuilding it on
+  # every visual update.
   - type: web
     name: opspilot-web
     runtime: docker
     plan: free
     region: singapore
     branch: main
-    autoDeployTrigger: checksPass
+    autoDeployTrigger: off
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /api/health
