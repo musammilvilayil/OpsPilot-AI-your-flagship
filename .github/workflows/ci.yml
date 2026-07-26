@@ -60,6 +60,15 @@ jobs:
           name: build-diagnostics
           path: build.log
           retention-days: 3
+      - name: Production container build
+        run: docker build --tag opspilot-web:ci . 2>&1 | tee docker-build.log
+      - name: Upload container diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: docker-build-diagnostics
+          path: docker-build.log
+          retention-days: 3
 
   ai-service:
     runs-on: ubuntu-latest
