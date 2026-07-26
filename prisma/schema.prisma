@@ -7,9 +7,30 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum IncidentStatus { OPEN INVESTIGATING RESOLVED IGNORED }
-enum Severity { CRITICAL HIGH MEDIUM LOW }
-enum IncidentCategory { ENVIRONMENT_CONFIGURATION DEPENDENCY BUILD TEST DATABASE AUTHENTICATION DEPLOYMENT UNKNOWN }
+enum IncidentStatus {
+  OPEN
+  INVESTIGATING
+  RESOLVED
+  IGNORED
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum IncidentCategory {
+  ENVIRONMENT_CONFIGURATION
+  DEPENDENCY
+  BUILD
+  TEST
+  DATABASE
+  AUTHENTICATION
+  DEPLOYMENT
+  UNKNOWN
+}
 
 model User {
   id           String       @id @default(cuid())
@@ -60,6 +81,7 @@ model Incident {
   resolvedAt    DateTime?
   createdAt     DateTime           @default(now())
   updatedAt     DateTime           @updatedAt
+
   @@index([repositoryId, status])
   @@index([detectedAt])
 }
