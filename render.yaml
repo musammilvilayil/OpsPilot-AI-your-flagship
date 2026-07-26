@@ -6,7 +6,7 @@ services:
     region: singapore
     branch: main
     autoDeployTrigger: checksPass
-    buildCommand: npm install --include=dev --no-audit --no-fund && npx prisma generate && npx prisma db push --skip-generate && npx next build
+    buildCommand: npm install --include=dev --no-audit --no-fund && npm run build
     startCommand: npm run start -- --hostname 0.0.0.0 --port $PORT
     healthCheckPath: /api/health
     envVars:
@@ -43,9 +43,9 @@ services:
       - key: PYTHON_VERSION
         value: 3.12.8
 
-# The hosted demo uses synchronous incident analysis so it can remain on free web
-# instances. Redis and the BullMQ worker remain available in the repository for
-# a production upgrade, where Render background workers require a paid plan.
+# Database schema is managed separately from the application build. The hosted
+# demo already has the current Prisma schema; future schema changes should use
+# a reviewed migration rather than a network-dependent db push during builds.
 databases:
   - name: opspilot-postgres
     databaseName: opspilot
